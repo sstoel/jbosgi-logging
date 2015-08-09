@@ -20,14 +20,14 @@
     <packaging>bundle</packaging>
 
     <version>1.0.3.Final-SNAPSHOT</version>
-  
+
     <!-- Parent -->
     <parent>
         <groupId>org.jboss.osgi</groupId>
         <artifactId>jbosgi-parent</artifactId>
         <version>1.0.28</version>
     </parent>
-  
+
     <!-- Source -->
     <scm>
         <connection>scm:git:git://github.com/jbosgi/jbosgi-logging.git</connection>
@@ -40,7 +40,7 @@
     <properties>
         <semantic.version>1.0.0</semantic.version>
     </properties>
-  
+
     <!-- Dependencies -->
     <dependencies>
         <dependency>
