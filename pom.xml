@@ -19,28 +19,28 @@
     <artifactId>jboss-osgi-logging</artifactId>
     <packaging>bundle</packaging>
 
-    <version>1.0.2.Final</version>
-  
+    <version>1.0.3.Final</version>
+
     <!-- Parent -->
     <parent>
         <groupId>org.jboss.osgi</groupId>
         <artifactId>jbosgi-parent</artifactId>
-        <version>1.0.27</version>
+        <version>1.0.28</version>
     </parent>
-  
+
     <!-- Source -->
     <scm>
         <connection>scm:git:git://github.com/jbosgi/jbosgi-logging.git</connection>
         <developerConnection>scm:git:git@github.com:jbosgi/jbosgi-logging.git</developerConnection>
         <url>http://github.com/jbosgi/jbosgi-logging</url>
-        <tag>1.0.2.Final</tag>
+        <tag>1.0.3.Final</tag>
     </scm>
 
     <!-- Properties -->
     <properties>
         <semantic.version>1.0.0</semantic.version>
     </properties>
-  
+
     <!-- Dependencies -->
     <dependencies>
         <dependency>
