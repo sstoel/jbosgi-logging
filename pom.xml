@@ -72,9 +72,8 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Version>${semantic.version}</Bundle-Version>
                         <Bundle-Activator>org.jboss.osgi.logging.internal.LoggingServicesActivator</Bundle-Activator>
-                        <Export-Package>
-                            org.jboss.osgi.logging;version="${semantic.version}"
-                        </Export-Package>
+                        <Export-Package>org.jboss.osgi.logging;version="${semantic.version}"</Export-Package>
+                        <Import-Package>org.jboss.logging*;version="[3,4)", *</Import-Package>
                     </instructions>
                 </configuration>
             </plugin>
