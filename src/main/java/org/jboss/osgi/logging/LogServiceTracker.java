@@ -21,9 +21,11 @@
  */
 package org.jboss.osgi.logging;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
+import org.osgi.service.log.Logger;
 import org.osgi.util.tracker.ServiceTracker;
 
 /**
@@ -57,20 +59,47 @@ public class LogServiceTracker extends ServiceTracker<LogService,LogService> imp
         log = new SystemLogService(context);
     }
 
+    @Override
+    public Logger getLogger(String name) {
+        return log.getLogger(name);
+    }
+
+    @Override
+    public Logger getLogger(Class<?> clazz) {
+        return log.getLogger(clazz);
+    }
+
+    @Override
+    public <L extends Logger> L getLogger(String name, Class<L> loggerType) {
+        return log.getLogger(name, loggerType);
+    }
+
+    @Override
+    public <L extends Logger> L getLogger(Class<?> clazz, Class<L> loggerType) {
+        return log.getLogger(clazz, loggerType);
+    }
+
+    @Override
+    public <L extends Logger> L getLogger(Bundle bundle, String name, Class<L> loggerType) {
+        return log.getLogger(bundle, name, loggerType);
+    }
+
+    @SuppressWarnings("deprecation")
     public void log(int level, String message) {
         log.log(level, message);
     }
 
+    @SuppressWarnings("deprecation")
     public void log(int level, String message, Throwable exception) {
         log.log(level, message, exception);
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "rawtypes", "deprecation" })
     public void log(ServiceReference sr, int level, String message) {
         log.log(sr, level, message);
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "rawtypes", "deprecation" })
     public void log(ServiceReference sr, int level, String message, Throwable exception) {
         log.log(sr, level, message, exception);
     }

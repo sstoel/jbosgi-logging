@@ -25,7 +25,7 @@ import org.jboss.logging.Logger;
 import org.osgi.framework.Bundle;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
-import org.osgi.service.log.LogService;
+import org.osgi.service.log.LogLevel;
 
 /**
  * A LogListener that logs LogEntrys to jboss-logging.
@@ -36,29 +36,41 @@ import org.osgi.service.log.LogService;
 public class LogListenerBridge implements LogListener {
     public void logged(LogEntry entry) {
         Bundle bundle = entry.getBundle();
-        int level = entry.getLevel();
         Throwable throwable = entry.getException();
 
-        String loggerName = bundle.getSymbolicName();
-        Logger log = Logger.getLogger(loggerName);
+        // The log category is the bundle that logged, or the logger name when there is no bundle
+        String loggerName = bundle != null ? bundle.getSymbolicName() : null;
+        if (loggerName == null)
+            loggerName = entry.getLoggerName();
+        Logger log = Logger.getLogger(loggerName != null ? loggerName : LogListenerBridge.class.getName());
 
         String message = entry.getMessage();
 
-        if (level == LogService.LOG_DEBUG)
-            log.debug(message, throwable);
-
-        else if (level == LogService.LOG_INFO) {
-            // Ignore INFO message of type 'BundleEvent STARTING'
-            String[] splitMessage = message.split("[\\s]");
-            if (throwable != null || splitMessage.length != 2 || splitMessage[0].endsWith("Event") == false) {
+        LogLevel level = entry.getLogLevel();
+        switch (level != null ? level : LogLevel.INFO) {
+            case TRACE:
+                log.trace(message, throwable);
+                break;
+            case DEBUG:
+                log.debug(message, throwable);
+                break;
+            case INFO:
+                // Ignore INFO message of type 'BundleEvent STARTING'
+                String[] splitMessage = message != null ? message.split("[\\s]") : new String[0];
+                if (throwable != null || splitMessage.length != 2 || splitMessage[0].endsWith("Event") == false) {
+                    log.info(message, throwable);
+                }
+                break;
+            case WARN:
+                log.warn(message, throwable);
+                break;
+            case ERROR:
+                log.error(message, throwable);
+                break;
+            case AUDIT:
+                // Audit entries are always logged
                 log.info(message, throwable);
-            }
+                break;
         }
-
-        else if (level == LogService.LOG_WARNING)
-            log.warn(message, throwable);
-
-        else if (level == LogService.LOG_ERROR)
-            log.error(message, throwable);
     }
 }

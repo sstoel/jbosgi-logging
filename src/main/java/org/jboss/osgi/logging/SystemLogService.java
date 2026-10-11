@@ -27,7 +27,9 @@ import java.util.Date;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.FormatterLogger;
 import org.osgi.service.log.LogService;
+import org.osgi.service.log.Logger;
 
 /**
  * A basic LogService that writes to System.out
@@ -60,8 +62,41 @@ public class SystemLogService implements LogService {
         logInternal(sr, level, message, exception);
     }
 
+    @Override
+    public Logger getLogger(String name) {
+        return getLogger(name, Logger.class);
+    }
+
+    @Override
+    public Logger getLogger(Class<?> clazz) {
+        return getLogger(clazz.getName(), Logger.class);
+    }
+
+    @Override
+    public <L extends Logger> L getLogger(Class<?> clazz, Class<L> loggerType) {
+        return getLogger(clazz.getName(), loggerType);
+    }
+
+    @Override
+    public <L extends Logger> L getLogger(Bundle bundle, String name, Class<L> loggerType) {
+        // Entries are always written on behalf of the bundle that owns this log service
+        return getLogger(name, loggerType);
+    }
+
+    @Override
+    public <L extends Logger> L getLogger(String name, Class<L> loggerType) {
+        if (loggerType != Logger.class && loggerType != FormatterLogger.class)
+            throw new IllegalArgumentException("Unsupported logger type: " + loggerType);
+        return loggerType.cast(new SystemLogger(this, name, loggerType == FormatterLogger.class));
+    }
+
     @SuppressWarnings("rawtypes")
     private void logInternal(ServiceReference sref, int level, String message, Throwable exception) {
+        write(sref, logLevel(level), null, message, exception);
+    }
+
+    @SuppressWarnings("rawtypes")
+    void write(ServiceReference sref, String levelName, String loggerName, String message, Throwable exception) {
         Bundle bundle;
         try {
             bundle = context.getBundle();
@@ -78,18 +113,20 @@ public class SystemLogService implements LogService {
             srefStr = sref.getBundle().getSymbolicName();
 
         String t = new SimpleDateFormat("yyyy-MM-dd HH:mm.ss.SSS").format(new Date(time));
-        String l = " " + logLevel(level);
+        String l = " " + levelName;
+        String n = loggerName != null ? ",logger=" + loggerName : "";
         String s = srefStr != null ? ",sref=" + srefStr : "";
         String b = ",bnd=" + bndStr;
         String m = ",msg=" + message;
         String e = exception != null ? ",ex=" + exception : "";
 
-        System.out.println("[" + t + l + b + s + m + e + "]");
+        System.out.println("[" + t + l + b + n + s + m + e + "]");
 
         if (exception != null)
             exception.printStackTrace(System.out);
     }
 
+    @SuppressWarnings("deprecation")
     private String logLevel(int level) {
         String logLevel;
         switch (level) {
