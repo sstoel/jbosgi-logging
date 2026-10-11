@@ -19,13 +19,13 @@
     <artifactId>jboss-osgi-logging</artifactId>
     <packaging>bundle</packaging>
 
-    <version>4.7.0.Final</version>
+    <version>4.8.0.Final</version>
 
     <!-- Parent -->
     <parent>
         <groupId>org.jboss.osgi</groupId>
         <artifactId>jbosgi-parent</artifactId>
-        <version>4.7.0</version>
+        <version>4.8.0</version>
     </parent>
 
     <!-- Source -->
@@ -51,12 +51,6 @@
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>osgi.core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>osgi.cmpn</artifactId>
-            <version>${version.osgi}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
