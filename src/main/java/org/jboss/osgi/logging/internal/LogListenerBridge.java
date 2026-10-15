@@ -34,6 +34,10 @@ import org.osgi.service.log.LogLevel;
  * @since 04-Mar-2009
  */
 public class LogListenerBridge implements LogListener {
+
+    // The logger names of the log entries of the framework events (OSGi Core R8, 101.7)
+    private static final String[] EVENT_LOGGER_NAMES = { "Events.Bundle", "Events.Service", "Events.Framework" };
+
     public void logged(LogEntry entry) {
         Bundle bundle = entry.getBundle();
         Throwable throwable = entry.getException();
@@ -55,9 +59,8 @@ public class LogListenerBridge implements LogListener {
                 log.debug(message, throwable);
                 break;
             case INFO:
-                // Ignore INFO message of type 'BundleEvent STARTING'
-                String[] splitMessage = message != null ? message.split("[\\s]") : new String[0];
-                if (throwable != null || splitMessage.length != 2 || splitMessage[0].endsWith("Event") == false) {
+                // Ignore the INFO entries of the framework events, e.g. 'BundleEvent STARTING'
+                if (throwable != null || isFrameworkEventEntry(entry) == false) {
                     log.info(message, throwable);
                 }
                 break;
@@ -72,5 +75,20 @@ public class LogListenerBridge implements LogListener {
                 log.info(message, throwable);
                 break;
         }
+    }
+
+    /**
+     * Whether the entry is one of the entries that the framework logs for its events: their logger names are
+     * Events.Bundle, Events.Service and Events.Framework, optionally followed by the symbolic name of the bundle
+     */
+    private static boolean isFrameworkEventEntry(LogEntry entry) {
+        String loggerName = entry.getLoggerName();
+        if (loggerName == null)
+            return false;
+        for (String eventLogger : EVENT_LOGGER_NAMES) {
+            if (loggerName.equals(eventLogger) || loggerName.startsWith(eventLogger + "."))
+                return true;
+        }
+        return false;
     }
 }

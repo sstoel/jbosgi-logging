@@ -39,68 +39,62 @@ import org.osgi.util.tracker.ServiceTracker;
  * @since 11-Apr-2009
  */
 public class LogServiceTracker extends ServiceTracker<LogService,LogService> implements LogService {
-    private LogService log;
+    private final LogService fallback;
 
     public LogServiceTracker(BundleContext context) {
         super(context, LogService.class, null);
-        log = new SystemLogService(context);
+        fallback = new SystemLogService(context);
         open();
     }
 
-    @Override
-    public LogService addingService(ServiceReference<LogService> reference) {
-        log = super.addingService(reference);
-        return log;
-    }
-
-    @Override
-    public void removedService(ServiceReference<LogService> reference, LogService service) {
-        super.removedService(reference, service);
-        log = new SystemLogService(context);
+    // The highest ranked of the tracked LogServices, the SystemLogService when there is none
+    private LogService getLogService() {
+        LogService service = getService();
+        return service != null ? service : fallback;
     }
 
     @Override
     public Logger getLogger(String name) {
-        return log.getLogger(name);
+        return getLogService().getLogger(name);
     }
 
     @Override
     public Logger getLogger(Class<?> clazz) {
-        return log.getLogger(clazz);
+        return getLogService().getLogger(clazz);
     }
 
     @Override
     public <L extends Logger> L getLogger(String name, Class<L> loggerType) {
-        return log.getLogger(name, loggerType);
+        return getLogService().getLogger(name, loggerType);
     }
 
     @Override
     public <L extends Logger> L getLogger(Class<?> clazz, Class<L> loggerType) {
-        return log.getLogger(clazz, loggerType);
+        return getLogService().getLogger(clazz, loggerType);
     }
 
     @Override
     public <L extends Logger> L getLogger(Bundle bundle, String name, Class<L> loggerType) {
-        return log.getLogger(bundle, name, loggerType);
+        return getLogService().getLogger(bundle, name, loggerType);
     }
 
     @SuppressWarnings("deprecation")
     public void log(int level, String message) {
-        log.log(level, message);
+        getLogService().log(level, message);
     }
 
     @SuppressWarnings("deprecation")
     public void log(int level, String message, Throwable exception) {
-        log.log(level, message, exception);
+        getLogService().log(level, message, exception);
     }
 
     @SuppressWarnings({ "rawtypes", "deprecation" })
     public void log(ServiceReference sr, int level, String message) {
-        log.log(sr, level, message);
+        getLogService().log(sr, level, message);
     }
 
     @SuppressWarnings({ "rawtypes", "deprecation" })
     public void log(ServiceReference sr, int level, String message, Throwable exception) {
-        log.log(sr, level, message, exception);
+        getLogService().log(sr, level, message, exception);
     }
 }

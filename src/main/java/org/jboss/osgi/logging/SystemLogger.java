@@ -257,7 +257,7 @@ final class SystemLogger implements FormatterLogger {
             }
         }
 
-        // Replace the {} place holders, \{} is a literal
+        // Replace the {} place holders, \{} is a literal, \\{} is a backslash followed by the argument
         StringBuilder result = new StringBuilder();
         int argIndex = 0;
         int start = 0;
@@ -267,12 +267,15 @@ final class SystemLogger implements FormatterLogger {
                 result.append(format, start, format.length());
                 break;
             }
-            if (index > 0 && format.charAt(index - 1) == '\\') {
+            boolean escaped = index > 0 && format.charAt(index - 1) == '\\';
+            boolean escapedEscape = escaped && index > 1 && format.charAt(index - 2) == '\\';
+            if (escaped && escapedEscape == false) {
                 result.append(format, start, index - 1).append("{}");
             } else if (argIndex >= args.length) {
                 result.append(format, start, index + 2);
             } else {
-                result.append(format, start, index).append(toString(args[argIndex++]));
+                // An escaped backslash before the place holder leaves one backslash
+                result.append(format, start, escapedEscape ? index - 1 : index).append(toString(args[argIndex++]));
             }
             start = index + 2;
         }
