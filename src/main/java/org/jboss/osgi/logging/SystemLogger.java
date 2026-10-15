@@ -23,6 +23,7 @@ package org.jboss.osgi.logging;
 
 import java.util.Arrays;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.FormatterLogger;
 import org.osgi.service.log.LogLevel;
@@ -41,11 +42,13 @@ import org.osgi.service.log.LoggerConsumer;
 final class SystemLogger implements FormatterLogger {
 
     private final SystemLogService logService;
+    private final Bundle bundle;
     private final String name;
     private final boolean printfFormat;
 
-    SystemLogger(SystemLogService logService, String name, boolean printfFormat) {
+    SystemLogger(SystemLogService logService, Bundle bundle, String name, boolean printfFormat) {
         this.logService = logService;
+        this.bundle = bundle;
         this.name = name;
         this.printfFormat = printfFormat;
     }
@@ -242,7 +245,7 @@ final class SystemLogger implements FormatterLogger {
             }
             args = Arrays.copyOf(args, args.length - 1);
         }
-        logService.write(sref, level.name(), name, formatMessage(format, args), exception);
+        logService.write(bundle, sref, level.name(), name, formatMessage(format, args), exception);
     }
 
     private String formatMessage(String format, Object[] args) {
@@ -253,7 +256,8 @@ final class SystemLogger implements FormatterLogger {
             try {
                 return String.format(format, args);
             } catch (RuntimeException ex) {
-                return format + " " + Arrays.deepToString(args);
+                // The message tells that the formatting failed (101.5.3)
+                return "Formatting failed (" + ex + "): format=" + format + ", arguments=" + Arrays.deepToString(args);
             }
         }
 

@@ -79,30 +79,41 @@ public class SystemLogService implements LogService {
 
     @Override
     public <L extends Logger> L getLogger(Bundle bundle, String name, Class<L> loggerType) {
-        // Entries are always written on behalf of the bundle that owns this log service
-        return getLogger(name, loggerType);
+        // The entries are written on behalf of the given bundle, which must be resolved (101.3)
+        if (bundle == null || (bundle.getState() & (Bundle.RESOLVED | Bundle.STARTING | Bundle.ACTIVE | Bundle.STOPPING)) == 0)
+            throw new IllegalArgumentException("Bundle not resolved: " + bundle);
+        return getLoggerInternal(bundle, name, loggerType);
     }
 
     @Override
     public <L extends Logger> L getLogger(String name, Class<L> loggerType) {
+        return getLoggerInternal(null, name, loggerType);
+    }
+
+    private <L extends Logger> L getLoggerInternal(Bundle bundle, String name, Class<L> loggerType) {
         if (loggerType != Logger.class && loggerType != FormatterLogger.class)
             throw new IllegalArgumentException("Unsupported logger type: " + loggerType);
-        return loggerType.cast(new SystemLogger(this, name, loggerType == FormatterLogger.class));
+        return loggerType.cast(new SystemLogger(this, bundle, name, loggerType == FormatterLogger.class));
     }
 
     @SuppressWarnings("rawtypes")
     private void logInternal(ServiceReference sref, int level, String message, Throwable exception) {
-        write(sref, logLevel(level), null, message, exception);
+        write(null, sref, logLevel(level), null, message, exception);
     }
 
+    /**
+     * Write an entry on behalf of the given bundle, or of the bundle that owns this log service if it is null
+     */
     @SuppressWarnings("rawtypes")
-    void write(ServiceReference sref, String levelName, String loggerName, String message, Throwable exception) {
-        Bundle bundle;
-        try {
-            bundle = context.getBundle();
-        } catch (IllegalStateException ex) {
-            // If this BundleContext is no longer valid.
-            return;
+    void write(Bundle loggerBundle, ServiceReference sref, String levelName, String loggerName, String message, Throwable exception) {
+        Bundle bundle = loggerBundle;
+        if (bundle == null) {
+            try {
+                bundle = context.getBundle();
+            } catch (IllegalStateException ex) {
+                // If this BundleContext is no longer valid.
+                return;
+            }
         }
 
         long time = System.currentTimeMillis();

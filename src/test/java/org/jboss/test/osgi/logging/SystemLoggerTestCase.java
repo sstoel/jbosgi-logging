@@ -123,7 +123,7 @@ public class SystemLoggerTestCase {
         // A format that does not fit its arguments is logged as it is
         logger.info("Hello %d", "foo");
         line = getOutput();
-        Assert.assertTrue(line, line.contains("msg=Hello %d [foo]]"));
+        Assert.assertTrue(line, line.contains("msg=Formatting failed (") && line.contains("format=Hello %d, arguments=[foo]]"));
     }
 
     @Test
